@@ -18,8 +18,8 @@ import 'src/closed_caption_file.dart';
 export 'src/closed_caption_file.dart';
 
 final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
-  // This will clear all open videos on the platform when a full restart is
-  // performed.
+// This will clear all open videos on the platform when a full restart is
+// performed.
   ..init();
 
 /// The duration, current position, buffering state, error state and settings
@@ -213,9 +213,23 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ///
   /// This will load the file from the file-URI given by:
   /// `'file://${file.path}'`.
-  VideoPlayerController.file(File file,
-      {this.closedCaptionFile, this.videoPlayerOptions})
-      : dataSource = 'file://${file.path}',
+  VideoPlayerController.file(
+    File file, {
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+  })  : dataSource = 'file://${file.path}',
+        dataSourceType = DataSourceType.file,
+        package = null,
+        formatHint = null,
+        httpHeaders = const {},
+        super(VideoPlayerValue(duration: Duration.zero));
+
+  VideoPlayerController.files(
+    List<File> files, {
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+  })  : dataSource = "",
+        dataSources = files.map((e) => e.path).toList(),
         dataSourceType = DataSourceType.file,
         package = null,
         formatHint = null,
@@ -225,6 +239,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// The URI to the video file. This will be in different formats depending on
   /// the [DataSourceType] of the original video.
   final String dataSource;
+
+  List<String>? dataSources;
 
   /// HTTP headers used for the request to the [dataSource].
   /// Only for [VideoPlayerController.network].
@@ -298,6 +314,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           uri: dataSource,
         );
         break;
+      case DataSourceType.files:
+        dataSourceDescription = DataSource(
+          sourceType: DataSourceType.files,
+          uris: dataSources,
+        );
+        break;
     }
 
     if (videoPlayerOptions?.mixWithOthers != null) {
@@ -307,6 +329,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     _textureId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
         kUninitializedTextureId;
+
     _creatingCompleter!.complete(null);
     final Completer<void> initializingCompleter = Completer<void>();
 

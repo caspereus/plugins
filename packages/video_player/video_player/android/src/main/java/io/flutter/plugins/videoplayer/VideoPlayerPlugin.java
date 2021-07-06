@@ -23,6 +23,8 @@ import io.flutter.plugins.videoplayer.Messages.VolumeMessage;
 import io.flutter.view.TextureRegistry;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
@@ -117,21 +119,23 @@ public class VideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
   }
 
   public TextureMessage create(CreateMessage arg) {
-    TextureRegistry.SurfaceTextureEntry handle =
-        flutterState.textureRegistry.createSurfaceTexture();
-    EventChannel eventChannel =
-        new EventChannel(
-            flutterState.binaryMessenger, "flutter.io/videoPlayer/videoEvents" + handle.id());
+    TextureRegistry.SurfaceTextureEntry handle = flutterState.textureRegistry.createSurfaceTexture();
+    EventChannel eventChannel = new EventChannel(flutterState.binaryMessenger, "flutter.io/videoPlayer/videoEvents" + handle.id());
+
+    Log.d("ARG INFO",arg.toString());
 
     VideoPlayer player;
+      List<String> exampleList = new ArrayList<>();
     if (arg.getAsset() != null) {
       String assetLookupKey;
+
       if (arg.getPackageName() != null) {
         assetLookupKey =
             flutterState.keyForAssetAndPackageName.get(arg.getAsset(), arg.getPackageName());
       } else {
         assetLookupKey = flutterState.keyForAsset.get(arg.getAsset());
       }
+
       player =
           new VideoPlayer(
               flutterState.applicationContext,
@@ -140,7 +144,9 @@ public class VideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
               "asset:///" + assetLookupKey,
               null,
               null,
-              options);
+              options,exampleList);
+
+
     } else {
       @SuppressWarnings("unchecked")
       Map<String, String> httpHeaders = arg.getHttpHeaders();
@@ -152,7 +158,7 @@ public class VideoPlayerPlugin implements FlutterPlugin, VideoPlayerApi {
               arg.getUri(),
               arg.getFormatHint(),
               httpHeaders,
-              options);
+              options,exampleList);
     }
     videoPlayers.put(handle.id(), player);
 
